@@ -12,7 +12,7 @@ Learn French civic knowledge one small step at a time. A free, independent learn
 - Local progress without an account.
 - Email-code accounts and private progress synchronization, backed by a dedicated Supabase project.
 
-**Current account status:** the private database and deletion function are deployed in the dedicated Supabase project. Public signup remains disabled pending email delivery, completed privacy details and end-to-end account checks. The public site does not collect login emails in this state. A local-only progress record is not a cloud account.
+**Current account status:** the private database and verified email sender are connected. Controlled checks passed for email-code login, remembered sessions, progress transfer, data export and logout. Public signup remains disabled while the public privacy contact, inbox placement and account-deletion check are completed. See [SETUP.md](SETUP.md) for the verified state. The public site does not collect login emails in this state.
 
 ## Scope and official sources
 
