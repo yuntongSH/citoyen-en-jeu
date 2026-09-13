@@ -1,0 +1,5 @@
+project_id = "citoyen-en-jeu"
+
+[functions.delete-account]
+# JWT is verified explicitly with Auth.getUser in the function, including modern signing keys.
+verify_jwt = false
