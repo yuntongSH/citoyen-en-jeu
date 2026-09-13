@@ -43,6 +43,8 @@ To activate accounts, complete [SETUP.md](SETUP.md). Only the Supabase project U
 
 ## How accounts work
 
+After a guest completes their first lesson, an optional invitation offers **Créer mon compte** or **Continuer sans compte**. It appears once per browser while local storage is retained. Choosing to create an account opens email sign-in and adds that guest progress after successful verification; continuing without an account opens the next lesson.
+
 Visitors enter their email and verify the one-time code. The session can persist on the device; if it expires, the same email reopens the same account. Completed lessons, revision cards, highest practice score, language preference and last lesson/step are stored privately. An unfinished quiz attempt is not synchronized.
 
 Users can explicitly import progress made without an account, export their own data, sign out, and delete their account. Signing out removes that account’s cached progress from the device. Guest progress and different accounts have separate storage keys.

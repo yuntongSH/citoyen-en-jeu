@@ -5,6 +5,10 @@ const app = window.CitoyenLearning;
 const progress = window.CitoyenProgress;
 const modal = document.querySelector('#account-dialog');
 const trigger = document.querySelector('#account-button');
+const lessonDialog = document.querySelector('#lesson-dialog');
+const signupPromptKey = 'citoyen-signup-prompt-v1';
+let signupPromptSeen = false, pendingGuestImport = null;
+try { signupPromptSeen = localStorage.getItem(signupPromptKey) === '1'; } catch {}
 const escape = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const enabled = config.accountsEnabled === true && /^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(config.supabaseUrl || '') && config.supabasePublishableKey?.startsWith('sb_publishable_') && config.privacyContact;
 const client = enabled ? createClient(config.supabaseUrl, config.supabasePublishableKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'citoyen-auth-v1'}}) : null;
@@ -14,6 +18,34 @@ let status = enabled ? 'Vérification du compte…' : 'Progression sur cet appar
 function showStatus(text) { status = text; app.setSyncStatus(text); }
 function message(text) { const el=modal.querySelector('[role="status"]'); if(el) el.textContent=text; }
 function later() {clearTimeout(timer); timer=setTimeout(sync,700);}
+function showSignupPrompt() {
+  const completion = lessonDialog.querySelector('.completion');
+  if (!enabled || !ready || user || signupPromptSeen || !lessonDialog.open || modal.open || !completion) return;
+  signupPromptSeen = true;
+  try { localStorage.setItem(signupPromptKey, '1'); } catch {}
+  const prompt = document.createElement('section');
+  prompt.className = 'signup-prompt';
+  prompt.setAttribute('aria-labelledby', 'signup-prompt-title');
+  prompt.tabIndex = -1;
+  prompt.innerHTML = '<h3 id="signup-prompt-title">Sauvegardez votre progression gratuitement</h3><p>Votre première leçon est terminée ! Retrouvez votre progression sur tous vos appareils avec un compte e-mail.</p><div class="signup-prompt-actions"><button class="primary solid" data-signup="create">Créer mon compte</button><button class="secondary" data-signup="skip">Continuer sans compte</button></div>';
+  prompt.addEventListener('click', e => {
+    const action = e.target.closest('[data-signup]')?.dataset.signup;
+    if (!action) return;
+    prompt.remove();
+    if (action === 'skip') { completion.querySelector('button')?.click(); return; }
+    // This explicit save action authorizes importing this guest progress after sign-in.
+    pendingGuestImport = app.snapshot();
+    lessonDialog.close();
+    modal.showModal();
+    draw();
+    modal.querySelector('#login-email')?.focus();
+  });
+  completion.after(prompt);
+  prompt.focus({preventScroll:true});
+  prompt.scrollIntoView({block:'nearest', behavior:'instant'});
+}
+window.addEventListener('citoyen:first-lesson-completed', showSignupPrompt);
+modal.addEventListener('close', () => { pendingGuestImport = null; });
 function fail(error) {
   if (error?.status===429 || /rate|too many/i.test(error?.message || '')) return 'Trop de demandes. Patientez quelques minutes avant de réessayer.';
   if (!navigator.onLine || /fetch|network/i.test(error?.message || '')) return 'Connexion indisponible. Réessayez quand vous serez en ligne.';
@@ -31,6 +63,7 @@ function draw() {
   } else {
     modal.insertAdjacentHTML('beforeend',`<p>Un code par e-mail suffit. Votre progression est privée et vous pourrez la retrouver sur un autre appareil.</p><form id="email-form"><label for="login-email">Votre adresse e-mail</label><input id="login-email" name="email" type="email" autocomplete="email" required maxlength="254" value="${escape(pendingEmail)}"><button class="primary solid" type="submit">Recevoir mon code →</button></form>${pendingEmail?`<form id="code-form"><label for="login-code">Le code reçu par e-mail</label><input id="login-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" minlength="6" maxlength="10" required><button class="primary solid" type="submit">Me connecter</button></form>`:''}<p class="account-note">Si cette adresse n’a pas encore de compte, il sera créé après vérification. Elle sert à la connexion et au suivi du compte, sans inscription à une newsletter.</p>`);
   }
+  if (!user && pendingGuestImport) modal.querySelector('#email-form')?.insertAdjacentHTML('beforebegin', '<p class="account-note">Après connexion, cette première leçon sera ajoutée à votre compte.</p>');
   modal.insertAdjacentHTML('beforeend','<p role="status" class="account-message" aria-live="polite"></p><a class="source-link" href="privacy.html">Confidentialité et données personnelles ↗</a>');
 }
 trigger.addEventListener('click',()=>{modal.showModal();draw();});
@@ -93,7 +126,9 @@ async function changeUser(next) {
     const {data,error}=await client.from('learning_progress').select('payload, revision').eq('user_id',next.id).maybeSingle();
     if(turn!==epoch) return;
     if(error) throw error;
-    app.replace(progress.merge(data?.payload,app.snapshot(),app.validIds));
+    const merged = progress.merge(data?.payload,app.snapshot(),app.validIds);
+    app.replace(pendingGuestImport ? progress.merge(merged,pendingGuestImport,app.validIds) : merged);
+    pendingGuestImport = null;
     ready=true;dirty=true;await sync();draw();
   } catch {if(turn===epoch) {showStatus('Compte connecté · synchronisation indisponible');draw();}}
 }
