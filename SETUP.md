@@ -6,15 +6,17 @@ The dedicated `citoyen-en-jeu` project is provisioned in Paris (`eu-west-3`). Th
 
 Resend is connected through custom SMTP. The verified sender is `Citoyen <connexion@citoyen.moodstreet.ai>`, with Ireland (`eu-west-1`) as the sending region. Cloudflare contains the dedicated subdomain's DKIM and return-path SPF/MX records. The SMTP key has sending-only access restricted to this subdomain; it is stored only in Supabase. TLS delivery is enforced and open/click tracking is not enabled. Both signup confirmation and returning-login templates use the French code template in this repository. Existing Mood Street website and mail records were preserved.
 
-Controlled checks against the live backend passed: first and returning email-code login, rejection of an already-used code, remembered session after reload, guest-progress import, progress restoration and propagation across two separate browser-storage origins, data export and logout. Resend reports both test emails delivered to the owner's mailbox; codes were retrieved from the provider's test-message preview. Outlook inbox placement has not yet been confirmed. These checks used private localhost previews; the public account form stayed closed.
+Controlled checks against the live backend passed: first and returning email-code login, rejection of an already-used code, remembered session after reload, guest-progress import, progress restoration and propagation across two separate browser-storage origins, data export and logout. The owner confirmed receipt of the test email in Outlook. The initial checks used private localhost previews while public registration was closed.
 
 Live database checks previously passed for anonymous rejection, account isolation, direct-write rejection, stale revisions and deletion cascade; those synthetic database fixtures were rolled back. The deployed deletion function rejects unknown origins, absent tokens and invalid tokens, and its allowed-origin preflight succeeds. The public API key cannot read or save progress anonymously.
 
-New-user signup was disabled again after the controlled test. The website account switch remains off. Remaining before public activation: a working public privacy contact, authenticated deletion of the temporary learner account, inbox-placement confirmation and a final deployed-account check. The temporary learner account contains two test lessons; its removal is awaiting the owner's confirmation. The privacy notice now identifies Resend and international processing, including its primary US processing despite the Ireland sending region. Do not claim exclusively EU processing.
+Authenticated deletion passed with the owner's approval: the temporary learner account and both test lessons were removed, and a live database query confirmed zero learner accounts and zero progress records before launch. The temporary localhost deletion origin was removed; the endpoint again accepts only the GitHub Pages origin.
 
-## Set up a fork or finish activation
+Public email registration is enabled. The public privacy/support contact is `hello@moodstreet.ai`, approved by the owner. GitHub Actions has `CITOYEN_ACCOUNTS_READY=true` and the approved contact. The privacy notice identifies Resend and international processing, including its primary US processing despite the Ireland sending region. Do not claim exclusively EU processing.
 
-For a new fork, follow all steps below. For the hosted project, complete the pending steps above; do not create a second database.
+## Set up a fork
+
+The hosted project is already configured. For a new fork, follow the steps below using your own project and contact details.
 
 1. Create a dedicated Supabase project in your own account. Prefer an EU database region for the intended audience. Keep the database password in your password manager.
 2. Apply `supabase/migrations/202609130001_learning_progress.sql` in the SQL editor. It enables row-level security and the version-checked save function. This is a new schema, not a migration for another app’s database.
