@@ -10,9 +10,9 @@ Learn French civic knowledge one small step at a time. A free, independent learn
 - Memory cards, original 10-question practice quizzes, a timeline and institution activities.
 - Optional English explanations alongside the French learning material.
 - Local progress without an account.
-- Email-code accounts and private progress synchronization, ready to connect to a dedicated Supabase project.
+- Email-code accounts and private progress synchronization, backed by a dedicated Supabase project.
 
-**Current account status:** disabled until Supabase, delivery of authentication emails, privacy details and live security checks have been configured. The public site does not collect login emails in this state. A local-only progress record is not a cloud account.
+**Current account status:** the private database and deletion function are deployed in the dedicated Supabase project. Public signup remains disabled pending email delivery, completed privacy details and end-to-end account checks. The public site does not collect login emails in this state. A local-only progress record is not a cloud account.
 
 ## Scope and official sources
 
